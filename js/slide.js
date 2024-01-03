@@ -1,18 +1,15 @@
+import debounce from './debounce.js';
+
 export default class Slide {
-  constructor(slide, container) {
+  constructor(slide, container, classe) {
     this.slide = document.querySelector(slide);
     this.container = document.querySelector(container);
+    this.classeAtivo = classe;
     this.distancia = {
       posicaoFinal: 0,
       cliqueInicial: 0,
       totalMovimentado: 0
     }
-  }
-
-  bindEventos() {
-    this.iniciaSlide = this.iniciaSlide.bind(this);
-    this.iniciaMovimento = this.iniciaMovimento.bind(this);
-    this.encerraSlide = this.encerraSlide.bind(this);
   }
 
   atualizaPosicao(clientX) {
@@ -102,6 +99,12 @@ export default class Slide {
     this.moveSlide(slideAtivo.posicao);
     this.navegacaoSlides(index);
     this.distancia.posicaoFinal = slideAtivo.posicao;
+    this.mudaClasseAtivo();
+  }
+
+  mudaClasseAtivo() {
+    this.slideArray.forEach((item) => item.elemento.classList.remove(this.classeAtivo));
+    this.slideArray[this.index.ativo].elemento.classList.add(this.classeAtivo);
   }
 
   ativaSlideAnterior() {
@@ -116,11 +119,30 @@ export default class Slide {
     }
   }
 
+  noResize() {
+    setTimeout(() => {
+      this.configuraSlides();
+      this.centralizaSlide(this.index.ativo);
+    }, 1000)
+  }
+
+  adicionaEventoRisize() {
+    window.addEventListener('resize', this.noResize)
+  }
+
+  bindEventos() {
+    this.iniciaSlide = this.iniciaSlide.bind(this);
+    this.iniciaMovimento = this.iniciaMovimento.bind(this);
+    this.encerraSlide = this.encerraSlide.bind(this);
+    this.noResize = debounce(this.noResize.bind(this), 200);
+  }
+
   iniciaClasse() {
     this.bindEventos();
     this.transicao(true);
     this.adicionaEvento();
     this.configuraSlides();
+    this.adicionaEventoRisize();
     return this;
   }
 }
