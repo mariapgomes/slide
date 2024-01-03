@@ -20,6 +20,10 @@ export default class Slide {
     return this.distancia.posicaoFinal - this.distancia.totalMovimentado;
   }
 
+  transicao(ativo) {
+    this.slide.style.transition = ativo ? 'transform .3s' : '';
+  }
+
   moveSlide(distanciaX) {
     this.distancia.posicaoMovimento = distanciaX;
     this.slide.style.transform = `translate3d(${distanciaX}px, 0px, 0px)`
@@ -36,6 +40,7 @@ export default class Slide {
       tipoMovimento = 'touchmove'
     }
     this.container.addEventListener(tipoMovimento, this.iniciaMovimento);
+    this.transicao(false);
   }
 
   iniciaMovimento(event) {
@@ -47,7 +52,19 @@ export default class Slide {
   encerraSlide(event) {
     const tipoMovimento = (event.type === 'mouseup') ? 'mousemove' : 'touchmove';
     this.container.removeEventListener(tipoMovimento, this.iniciaMovimento);
-    this.distancia.posicaoFinal = this.distancia.posicaoMovimento
+    this.distancia.posicaoFinal = this.distancia.posicaoMovimento;
+    this.transicao(true);
+    this.mudaSlideNoFinal();
+  }
+
+  mudaSlideNoFinal() {
+    if (this.distancia.totalMovimentado > 120 && this.index.proximo !== undefined) {
+      this.ativaProximoSlide();
+    } else if (this.distancia.totalMovimentado < -120 && this.index.anterior !== undefined) {
+      this.ativaSlideAnterior();
+    } else {
+      this.centralizaSlide(this.index.ativo)
+    }
   }
 
   adicionaEvento() {
@@ -69,14 +86,13 @@ export default class Slide {
       const posicao = this.posicaoSlide(elemento);
       return { elemento, posicao, };
     });
-    console.log(this.slideArray);
   }
 
   navegacaoSlides(index) {
     const ultimoSlide = this.slideArray.length - 1;
     this.index = {
       anterior: index ? index - 1 : undefined,
-      ativo: 0,
+      ativo: index,
       proximo: index === ultimoSlide ? undefined : index + 1
     }
   }
@@ -88,8 +104,21 @@ export default class Slide {
     this.distancia.posicaoFinal = slideAtivo.posicao;
   }
 
+  ativaSlideAnterior() {
+    if (this.index.anterior !== undefined) {
+      this.navegacaoSlides(this.index.anterior);
+    }
+  }
+
+  ativaProximoSlide() {
+    if (this.index.proximo !== undefined) {
+      this.navegacaoSlides(this.index.proximo);
+    }
+  }
+
   iniciaClasse() {
     this.bindEventos();
+    this.transicao(true);
     this.adicionaEvento();
     this.configuraSlides();
     return this;
