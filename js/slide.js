@@ -10,6 +10,7 @@ export class Slide {
       cliqueInicial: 0,
       totalMovimentado: 0
     }
+    this.disparaEvento = new Event('disparaEvento');
   }
 
   transicao(ativo) {
@@ -100,6 +101,7 @@ export class Slide {
     this.navegacaoSlides(index);
     this.distancia.posicaoFinal = slideAtivo.posicao;
     this.mudaClasseAtivo();
+    this.container.dispatchEvent(this.disparaEvento);
   }
 
   mudaClasseAtivo() {
@@ -151,8 +153,12 @@ export class Slide {
     return this;
   }
 }
-// Se o constructor for o mesmo, não é necessário criar outro quando se está estendendo uma classe.
+
 export class NavegacaoSlide extends Slide {
+  constructor(slide, container, classe) {
+    super(slide, container, classe)
+    this.controleEventoBind();
+  }
   adicionaSetas(anterior, proximo) {
     this.elementoAnterior = document.querySelector(anterior);
     this.proximoElemento = document.querySelector(proximo);
@@ -162,5 +168,41 @@ export class NavegacaoSlide extends Slide {
   adicionaEventoSetas() {
     this.elementoAnterior.addEventListener('click', this.ativaSlideAnterior);
     this.proximoElemento.addEventListener('click', this.ativaProximoSlide);
+  }
+
+  criaControle() {
+    const controle = document.createElement('ul');
+    controle.dataset.controle = 'slide';
+
+    this.slideArray.forEach((item, index) => {
+      controle.innerHTML += `<li><a href="#slide${index + 1}">${index + 1}</a></li>`;
+    })
+    this.container.appendChild(controle);
+    return controle;
+  }
+
+  eventoControle(item, index) {
+    item.addEventListener('click', (event) => {
+      event.preventDefault();
+      this.centralizaSlide(index);
+    });
+    this.container.addEventListener('disparaEvento', this.controleAtivo);
+  }
+
+  adicionaControle(customizaControle) {
+    this.controle = document.querySelector(customizaControle) || this.criaControle();
+    this.arrayControle = [...this.controle.children];
+    this.arrayControle.forEach(this.eventoControle);
+    this.controleAtivo();
+  }
+  
+  controleAtivo() {
+    this.arrayControle.forEach((item) => item.classList.remove(this.classeAtivo));
+    this.arrayControle[this.index.ativo].classList.add(this.classeAtivo);
+  }
+
+  controleEventoBind() {
+    this.eventoControle = this.eventoControle.bind(this);
+    this.controleAtivo = this.controleAtivo.bind(this);
   }
 }
