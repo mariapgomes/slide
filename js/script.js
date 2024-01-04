@@ -1,5 +1,5 @@
-import Slide from "./slide.js";
+import { NavegacaoSlide } from "./slide.js";
 
-const slide = new Slide('.slide', '.slide-container', 'ativo');
+const slide = new NavegacaoSlide('.slide', '.slide-container', 'ativo');
 slide.iniciaClasse();
-slide.centralizaSlide(0);
+slide.adicionaSetas('.anterior', '.proximo')

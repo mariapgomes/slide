@@ -1,6 +1,6 @@
 import debounce from './debounce.js';
 
-export default class Slide {
+export class Slide {
   constructor(slide, container, classe) {
     this.slide = document.querySelector(slide);
     this.container = document.querySelector(container);
@@ -12,11 +12,6 @@ export default class Slide {
     }
   }
 
-  atualizaPosicao(clientX) {
-    this.distancia.totalMovimentado = (this.distancia.cliqueInicial - clientX) * 1.6;
-    return this.distancia.posicaoFinal - this.distancia.totalMovimentado;
-  }
-
   transicao(ativo) {
     this.slide.style.transition = ativo ? 'transform .3s' : '';
   }
@@ -24,6 +19,11 @@ export default class Slide {
   moveSlide(distanciaX) {
     this.distancia.posicaoMovimento = distanciaX;
     this.slide.style.transform = `translate3d(${distanciaX}px, 0px, 0px)`
+  }
+
+  atualizaPosicao(clientX) {
+    this.distancia.totalMovimentado = (this.distancia.cliqueInicial - clientX) * 1.6;
+    return this.distancia.posicaoFinal - this.distancia.totalMovimentado;
   }
 
   iniciaSlide(event) {
@@ -90,7 +90,7 @@ export default class Slide {
     this.index = {
       anterior: index ? index - 1 : undefined,
       ativo: index,
-      proximo: index === ultimoSlide ? undefined : index + 1
+      proximo: index === ultimoSlide ? undefined : index + 1,
     }
   }
 
@@ -109,13 +109,13 @@ export default class Slide {
 
   ativaSlideAnterior() {
     if (this.index.anterior !== undefined) {
-      this.navegacaoSlides(this.index.anterior);
+      this.centralizaSlide(this.index.anterior);
     }
   }
 
   ativaProximoSlide() {
     if (this.index.proximo !== undefined) {
-      this.navegacaoSlides(this.index.proximo);
+      this.centralizaSlide(this.index.proximo);
     }
   }
 
@@ -134,6 +134,10 @@ export default class Slide {
     this.iniciaSlide = this.iniciaSlide.bind(this);
     this.iniciaMovimento = this.iniciaMovimento.bind(this);
     this.encerraSlide = this.encerraSlide.bind(this);
+
+    this.ativaSlideAnterior = this.ativaSlideAnterior.bind(this);
+    this.ativaProximoSlide = this.ativaProximoSlide.bind(this);
+
     this.noResize = debounce(this.noResize.bind(this), 200);
   }
 
@@ -143,6 +147,20 @@ export default class Slide {
     this.adicionaEvento();
     this.configuraSlides();
     this.adicionaEventoRisize();
+    this.centralizaSlide(0);
     return this;
+  }
+}
+// Se o constructor for o mesmo, não é necessário criar outro quando se está estendendo uma classe.
+export class NavegacaoSlide extends Slide {
+  adicionaSetas(anterior, proximo) {
+    this.elementoAnterior = document.querySelector(anterior);
+    this.proximoElemento = document.querySelector(proximo);
+    this.adicionaEventoSetas();
+  }
+
+  adicionaEventoSetas() {
+    this.elementoAnterior.addEventListener('click', this.ativaSlideAnterior);
+    this.proximoElemento.addEventListener('click', this.ativaProximoSlide);
   }
 }
